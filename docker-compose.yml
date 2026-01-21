@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  medsum-test-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medsum-test-server
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    networks:
+      - shared-net-vijay
+    environment:
+      - NODE_ENV=production
+
+networks:
+  shared-net-vijay:
+    external: true

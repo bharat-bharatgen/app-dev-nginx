@@ -1,0 +1,65 @@
+# Configuration for medsum.bharatgen.dev
+# Managed by: apps-dev team
+# Last updated: 2026-01-21
+# Backend: Docker service on shared-net-vijay network
+
+# HTTP server - redirects to HTTPS
+server {
+    listen 80;
+    server_name medsum.bharatgen.dev;
+
+    # Health check endpoint (accessible via HTTP)
+    location /health {
+        access_log off;
+        proxy_pass http://medsum-test-server:8084/health;
+        proxy_set_header Host $host;
+    }
+
+    # Redirect all other HTTP traffic to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS server
+server {
+    listen 443 ssl;
+    server_name medsum.bharatgen.dev;
+
+    # SSL certificate paths (using wildcard *.bharatgen.dev certificate)
+    ssl_certificate /etc/nginx/certs/fullchain1.pem;
+    ssl_certificate_key /etc/nginx/certs/privkey1.pem;
+
+    # SSL parameters
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    client_max_body_size 200M;
+
+    # Proxy to Docker service (medsum-test-server)
+    location / {
+        proxy_pass http://medsum-test-server:8084;
+
+        # WebSocket Support
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # Forwarding headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeout settings
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+        proxy_connect_timeout 60;
+    }
+
+    # Health check endpoint
+    location /health {
+        access_log off;
+        proxy_pass http://medsum-test-server:8084/health;
+        proxy_set_header Host $host;
+    }
+}
