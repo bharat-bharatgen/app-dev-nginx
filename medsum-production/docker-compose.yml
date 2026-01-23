@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  medsum-server:
+    image: asia-east2-docker.pkg.dev/amrita-body-scan/medsum-repo/medsum:1.3
+    container_name: medsum-server
+    restart: unless-stopped
+    ports:
+      - "8084:8000"  # Map host 8084 to container 8000
+    networks:
+      - shared-net-vijay
+    environment:
+      - LLM_BASE_URL=http://10.67.19.153:8005/v1
+      - LLM_API_KEY=sk-dN7vdrZ9osrNGVF6-YRs3g
+    volumes:
+      - /projects2/data2/app-dev/team-app/amrita/media:/app/media
+      - /projects2/data2/app-dev/team-app/amrita/flask_service/tmp:/app/flask_service/tmp
+      - /projects2/data2/app-dev/team-app/amrita/conversation_logs:/app/flask_service/conversation_logs
+
+networks:
+  shared-net-vijay:
+    external: true

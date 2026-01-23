@@ -11,7 +11,7 @@ server {
     # Health check endpoint (accessible via HTTP)
     location /health {
         access_log off;
-        proxy_pass http://medsum-server:8000/;
+        proxy_pass http://medsum-test-server:8084/health;
         proxy_set_header Host $host;
     }
 
@@ -35,9 +35,9 @@ server {
     ssl_ciphers HIGH:!aNULL:!MD5;
     client_max_body_size 200M;
 
-    # Proxy to Docker service (medsum-server)
+    # Proxy to Docker service (medsum-test-server)
     location / {
-        proxy_pass http://medsum-server:8000;
+        proxy_pass http://medsum-test-server:8084;
 
         # WebSocket Support
         proxy_http_version 1.1;
@@ -59,7 +59,7 @@ server {
     # Health check endpoint
     location /health {
         access_log off;
-        proxy_pass http://medsum-server:8000/;
+        proxy_pass http://medsum-test-server:8084/health;
         proxy_set_header Host $host;
     }
 }
