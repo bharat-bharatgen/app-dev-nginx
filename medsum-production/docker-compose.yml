@@ -5,8 +5,10 @@ services:
     image: asia-east2-docker.pkg.dev/amrita-body-scan/medsum-repo/medsum:1.3
     container_name: medsum-server
     restart: unless-stopped
+    entrypoint: ["/custom_entrypoint.sh"]
     ports:
       - "8084:8000"  # Map host 8084 to container 8000
+      - "8085:8084"  # Map host 8085 to container 8084
     networks:
       - shared-net-vijay
     environment:
@@ -16,6 +18,8 @@ services:
       - /projects2/data2/app-dev/team-app/amrita/media:/app/media
       - /projects2/data2/app-dev/team-app/amrita/flask_service/tmp:/app/flask_service/tmp
       - /projects2/data2/app-dev/team-app/amrita/conversation_logs:/app/flask_service/conversation_logs
+      - ./django_proxy_settings.py:/app/django_proxy_settings.py:ro
+      - ./custom_entrypoint.sh:/custom_entrypoint.sh:ro
 
 networks:
   shared-net-vijay:
