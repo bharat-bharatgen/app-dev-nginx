@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   medsum-server:
     image: asia-east2-docker.pkg.dev/amrita-body-scan/medsum-repo/medsum:1.3
