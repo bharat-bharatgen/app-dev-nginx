@@ -1,6 +1,6 @@
 services:
   medsum-server:
-    image: asia-east2-docker.pkg.dev/amrita-body-scan/medsum-repo/medsum:1.5
+    image: asia-east2-docker.pkg.dev/amrita-body-scan/medsum-repo/medsum:1.7
     container_name: medsum-server
     restart: unless-stopped
     entrypoint: ["/custom_entrypoint.sh"]
