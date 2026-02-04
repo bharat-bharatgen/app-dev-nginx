@@ -18,6 +18,8 @@ services:
       - /projects2/data2/app-dev/team-app/amrita/conversation_logs:/app/flask_service/conversation_logs
       - ./django_proxy_settings.py:/app/django_proxy_settings.py:ro
       - ./custom_entrypoint.sh:/custom_entrypoint.sh:ro
+      - ./db_backup/db.sqlite3:/app/db.sqlite3
+      - /projects2/data2/app-dev/team-app/amrita_db_backup:/app/db_backup_remote
 
 networks:
   shared-net-vijay:

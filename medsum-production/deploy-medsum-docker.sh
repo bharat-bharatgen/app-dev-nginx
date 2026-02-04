@@ -74,6 +74,62 @@ else
     EXTRACTED_FILES=0
 fi
 
+# Step 4.5: Backup SQLite database before upgrade
+echo -e "\n${YELLOW}[4.5/6] Backing up SQLite database...${NC}"
+BACKUP_DIR="$COMPOSE_DIR/db_backup"
+REMOTE_BACKUP_DIR="/projects2/data2/app-dev/team-app/amrita_db_backup"
+CONTAINER_REMOTE_DIR="/app/db_backup_remote"
+
+# Ensure backup directories exist
+if [ ! -d "$BACKUP_DIR" ]; then
+    mkdir -p "$BACKUP_DIR"
+    echo -e "${BLUE}Created backup directory: $BACKUP_DIR${NC}"
+fi
+if [ ! -d "$REMOTE_BACKUP_DIR" ]; then
+    mkdir -p "$REMOTE_BACKUP_DIR" 2>/dev/null || echo -e "${YELLOW}⚠ Could not create remote backup directory${NC}"
+fi
+
+# Get current running container's image version (not from compose file)
+VERSION=$(docker inspect $SERVICE_NAME --format '{{.Config.Image}}' 2>/dev/null | sed 's/.*://')
+if [ -z "$VERSION" ]; then
+    VERSION="unknown"
+    echo -e "${YELLOW}⚠ Could not determine current image version${NC}"
+fi
+
+TIMESTAMP=$(date +%Y-%m-%d-%H-%M-%S)
+BACKUP_FILENAME="db.sqlite3_${VERSION}_${TIMESTAMP}"
+BACKUP_FILE="$BACKUP_DIR/$BACKUP_FILENAME"
+
+# Check if container is running
+if ! docker ps --format '{{.Names}}' | grep -q "^${SERVICE_NAME}$"; then
+    echo -e "${YELLOW}⚠ Container not running, skipping backup${NC}"
+else
+    # Attempt backup
+    if docker cp $SERVICE_NAME:/app/db.sqlite3 "$BACKUP_FILE" 2>/dev/null; then
+        # Verify backup file size
+        BACKUP_SIZE=$(stat -c%s "$BACKUP_FILE" 2>/dev/null || echo "0")
+        if [ "$BACKUP_SIZE" -gt 0 ]; then
+            echo -e "${GREEN}✓ Database backed up: $BACKUP_FILENAME ($(numfmt --to=iec $BACKUP_SIZE))${NC}"
+
+            # Copy to remote backup location via container (has access to /projects2)
+            if docker exec $SERVICE_NAME mkdir -p "$CONTAINER_REMOTE_DIR" 2>/dev/null; then
+                if docker exec $SERVICE_NAME cp /app/db.sqlite3 "$CONTAINER_REMOTE_DIR/$BACKUP_FILENAME" 2>/dev/null; then
+                    echo -e "${GREEN}✓ Backup copied to remote: $REMOTE_BACKUP_DIR${NC}"
+                else
+                    echo -e "${YELLOW}⚠ Could not copy backup to remote location${NC}"
+                fi
+            else
+                echo -e "${YELLOW}⚠ Could not create remote backup directory${NC}"
+            fi
+        else
+            echo -e "${RED}✗ Backup file is empty, removing${NC}"
+            rm -f "$BACKUP_FILE"
+        fi
+    else
+        echo -e "${YELLOW}⚠ Could not backup database (db may not exist in container)${NC}"
+    fi
+fi
+
 # Step 5: Stop and remove old container, start new one
 echo -e "\n${YELLOW}[5/6] Restarting container with new image...${NC}"
 docker compose down
