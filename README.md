@@ -5,7 +5,7 @@ This directory contains nginx configurations and documentation for managing mult
 ## Quick Reference
 
 ### Active Domains
-- **medsum.bharatgen.dev** → Docker service `medsum-test-server:8084`
+- **medsum.bharatgen.dev** → Docker service `medsum-server:8000` (Production - PostgreSQL)
 - **apps.bharatgen.dev/ifsca** → Service at `10.67.19.153:4000`
 
 ### Key Files
@@ -17,6 +17,11 @@ This directory contains nginx configurations and documentation for managing mult
 │   ├── apps.conf.multi-app    # Reference: multi-app setup
 │   ├── README-multi-app.md    # Guide: path-based routing
 │   └── ARCHITECTURE.md        # Architecture diagrams
+├── medsum-production/         # Medsum production deployment
+│   ├── docker-compose.yml     # medsum-server + PostgreSQL
+│   ├── README.md              # Deployment documentation
+│   ├── deploy-medsum-docker-v1_8.sh  # Deploy script (v1.8+)
+│   └── backup-medsum-db-v1_8.sh      # Backup script (v1.8+)
 ├── docker-compose.yml         # medsum-test-server
 ├── Dockerfile                 # Node.js 24 Alpine
 ├── test-server.js             # Test server code
@@ -419,6 +424,25 @@ medsum-test    External       External
 2. New certificate should be placed in `/projects/data/cert/`
 3. No nginx config changes needed (same wildcard)
 4. Just reload nginx: `docker exec nginx nginx -s reload`
+
+---
+
+## Medsum Production
+
+For medsum production deployment details, see [medsum-production/README.md](medsum-production/README.md).
+
+**Quick commands:**
+```bash
+# Deploy new version
+cd /home/ubuntu/apps-dev/medsum-production
+./deploy-medsum-docker-v1_8.sh
+
+# Backup database
+./backup-medsum-db-v1_8.sh
+
+# View logs
+docker logs -f medsum-server
+```
 
 ---
 

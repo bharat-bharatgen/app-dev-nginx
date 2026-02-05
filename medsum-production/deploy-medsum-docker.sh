@@ -1,6 +1,7 @@
 #!/bin/bash
 # Deploy medsum-server Docker container using docker-compose
 # This script pulls the latest image, stops the old container, and starts the new one
+# 2026-02-05 - Bharat Patil - This is legacy script and needed only for medsum image 1.7 and down 
 
 set -e  # Exit on any error
 

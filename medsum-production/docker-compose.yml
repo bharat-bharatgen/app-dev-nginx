@@ -1,15 +1,38 @@
 services:
-  medsum-server:
-    image: asia-east2-docker.pkg.dev/amrita-body-scan/medsum-repo/medsum:1.7
-    container_name: medsum-server
+  medsum-postgres:
+    image: postgres:16
+    container_name: medsum-postgres
     restart: unless-stopped
-    entrypoint: ["/custom_entrypoint.sh"]
     ports:
-      - "8084:8000"  # Map host 8084 to container 8000
-      - "8085:8084"  # Map host 8085 to container 8084
+      - "5433:5432"
     networks:
       - shared-net-vijay
     environment:
+      - POSTGRES_DB=medsum_db
+      - POSTGRES_USER=medsum_user
+      - POSTGRES_PASSWORD=7yTPlZAy7TTYfXWcNksJ
+    volumes:
+      - /projects2/data2/app-dev/team-app/amrita_postgres:/var/lib/postgresql/data
+      - /projects2/data2/app-dev/team-app/amrita_db_backup:/backup
+
+  medsum-server:
+    image: asia-east2-docker.pkg.dev/amrita-body-scan/medsum-repo/medsum:1.8
+    container_name: medsum-server
+    restart: unless-stopped
+    depends_on:
+      - medsum-postgres
+    entrypoint: ["/custom_entrypoint.sh"]
+    ports:
+      - "8084:8000"
+      - "8085:8084"
+    networks:
+      - shared-net-vijay
+    environment:
+      - POSTGRES_DB=medsum_db
+      - POSTGRES_USER=medsum_user
+      - POSTGRES_PASSWORD=7yTPlZAy7TTYfXWcNksJ
+      - POSTGRES_HOST=medsum-postgres
+      - POSTGRES_PORT=5432
       - LLM_BASE_URL=http://10.67.19.153:8005/v1
       - LLM_API_KEY=sk-dN7vdrZ9osrNGVF6-YRs3g
     volumes:
@@ -18,8 +41,7 @@ services:
       - /projects2/data2/app-dev/team-app/amrita/conversation_logs:/app/flask_service/conversation_logs
       - ./django_proxy_settings.py:/app/django_proxy_settings.py:ro
       - ./custom_entrypoint.sh:/custom_entrypoint.sh:ro
-      - ./db_backup/db.sqlite3:/app/db.sqlite3
-      - /projects2/data2/app-dev/team-app/amrita_db_backup:/app/db_backup_remote
+      # - /projects2/data2/app-dev/team-app/amrita_db_backup:/app/db_backup_remote
 
 networks:
   shared-net-vijay:
